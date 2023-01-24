@@ -7,7 +7,7 @@
 #pragma semicolon 1
 
 #define PLUGIN_VERSION "0.1.0"
-#define DEBUG true
+#define DEBUG false
 
 #define COLLISION_GROUP_NONE 0 // Default NT player non-active physics prop interaction.
 #define COLLISION_GROUP_PUSHAWAY 17 // Nonsolid on client and server, pushaway in player code. This activates when a phys prop is moving around.
