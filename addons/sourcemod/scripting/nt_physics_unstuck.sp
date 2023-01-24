@@ -70,8 +70,17 @@ public void OnPluginStart()
 	delete gd;
 }
 
+#if(DEBUG)
+float lastCheck = 0.0;
+#endif
 public MRESReturn CheckStuck(Address pThis, DHookReturn hReturn, DHookParam hParams)
 {
+#if(DEBUG)
+	float time = GetGameTime();
+	PrintToServer("CheckStuck dt: %f", time - lastCheck);
+	lastCheck = time;
+#endif
+
 	// Someone somewhere is stuck!
 	if (hReturn.Value)
 	{
