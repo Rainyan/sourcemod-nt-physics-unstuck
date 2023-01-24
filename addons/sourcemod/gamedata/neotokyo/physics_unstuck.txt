@@ -1,0 +1,66 @@
+"Games"
+{
+	"NeotokyoSource"
+	{
+		"Signatures"
+		{
+			"Sig_CBaseEntity_CollisionRulesChanged"
+			{
+				"library"	"server"
+				"windows"	"\x81\xEC\x80\x00\x00\x00\x56\x8B\xF1\x83\xBE\xF8\x01\x00\x00\x00"
+			}
+			"Sig_CGameMovement_CheckStuck"
+			{
+				"library"	"server"
+				"windows"	"\x81\xEC\x80\x00\x00\x00\x56\x57\x8B\xF1"
+			}
+			"Sig_CBaseEntity_SetCollisionGroup"
+			{
+				"library"	"server"
+				"windows"	"\x56\x8B\xF1\x8B\x86\xF4\x01\x00\x00"
+			}
+		}
+		"Functions"
+		{
+			"Fn_SetCollisionGroup"
+			{
+				"signature"	"Sig_CBaseEntity_SetCollisionGroup"
+				"callconv"	"thiscall"
+				"hooktype"	"entity"
+				"return"	"void"
+				"this"		"entity"
+				"arguments"
+				{
+					"collisiongroup"
+					{
+						"type"	"int"
+					}
+				}
+			}
+			"Fn_CheckStuck"
+			{
+				"signature"	"Sig_CGameMovement_CheckStuck"
+				"callconv"	"thiscall"
+				"hooktype"	"raw"
+				"return"	"int"
+				"this"		"address"
+				"arguments"
+				{
+					"esp_value"
+					{
+						"type"		"objectptr"
+						"register"	"ecx"
+					}
+				}
+			}
+			"Fn_CollisionRulesChanged"
+			{
+				"signature"	"Sig_CBaseEntity_CollisionRulesChanged"
+				"callconv"	"thiscall"
+				"hooktype"	"entity"
+				"return"	"void"
+				"this"		"entity"
+			}
+		}
+	}
+}
