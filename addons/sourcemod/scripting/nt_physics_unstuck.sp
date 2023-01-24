@@ -126,6 +126,8 @@ public Action Timer_EnableCollision(Handle timer, int entref)
 	return Plugin_Stop;
 }
 
+// SM has a function for this, but we don't have mod compatibility
+// because of some missing offsets. Calling directly, for now.
 void Hack_SetEntityCollisionGroup(int entity_or_entref, int collision_group)
 {
 	// Always convert to entity index before actually passing in.
