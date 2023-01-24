@@ -6,7 +6,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "0.1.0"
+#define PLUGIN_VERSION "0.2.0"
 #define DEBUG false
 
 #define COLLISION_GROUP_NONE 0 // Default NT player non-active physics prop interaction.
@@ -22,6 +22,9 @@
 
 static int props[32];
 static int head;
+
+static float mins[3] = { -16.0, -16.0, 0.0 };
+static float maxs[3] = { 16.0, 16.0, 70.0 };
 
 public Plugin myinfo = {
 	name = "NT Physics Unstuck",
@@ -81,7 +84,7 @@ public MRESReturn CheckStuck(Address pThis, DHookReturn hReturn, DHookParam hPar
 				continue;
 			}
 			GetClientAbsOrigin(client, pos);
-			TR_EnumerateEntitiesPoint(pos, PARTITION_SOLID_EDICTS, HitResult, client);
+			TR_EnumerateEntitiesHull(pos, pos, mins, maxs, PARTITION_SOLID_EDICTS, HitResult, client);
 		}
 	}
 	return MRES_Ignored;
@@ -89,10 +92,15 @@ public MRESReturn CheckStuck(Address pThis, DHookReturn hReturn, DHookParam hPar
 
 public bool HitResult(int entity, int client)
 {
+	if (entity == client)
+	{
+		return true;
+	}
+
 	int entref = EntIndexToEntRef(entity);
 	if (entref == INVALID_ENT_REFERENCE)
 	{
-		return false;
+		return true;
 	}
 
 	for (int i = 0; i < sizeof(props); ++i)
@@ -100,6 +108,9 @@ public bool HitResult(int entity, int client)
 		//PrintToServer("Iterating: %d vs %d", props[i], entref);
 		if (props[i] == entref && IsValidEdict(entref))
 		{
+#if(DEBUG)
+			PrintToChat(client, "UNSTUCK!");
+#endif
 			UnstuckPlayer(client, entref);
 			return false;
 		}
