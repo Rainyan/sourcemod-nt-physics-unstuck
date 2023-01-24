@@ -2,6 +2,8 @@
 
 SourceMod plugin for Neotokyo. Temporarily toggle physics prop collision if a player is stuck inside it.
 
+[unstuck_example.webm](https://user-images.githubusercontent.com/6595066/214193232-2d6abbc2-361f-46e9-a557-a07bac392187.webm)
+
 ## Build requirements
 
 * SourceMod 1.11 or newer
