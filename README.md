@@ -9,5 +9,5 @@ SourceMod plugin for Neotokyo. Temporarily toggle physics prop collision if a pl
 
 ## Installation
 
-* Place the gamedata file *physics_unstuck.txt* to the `addons/sourcemod/gamedata/neotokyo` folder (create the "neotokyo" folder if it doesn't exist).
+* Place [the gamedata file](addons/sourcemod/gamedata/neotokyo/) to the `addons/sourcemod/gamedata/neotokyo` folder (create the "neotokyo" folder if it doesn't exist).
 * Compile the plugin, and place the .smx binary file to `addons/sourcemod/plugins`
