@@ -6,7 +6,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "0.2.0"
+#define PLUGIN_VERSION "0.3.0"
 #define DEBUG false
 
 #define COLLISION_GROUP_NONE 0 // Default NT player non-active physics prop interaction.
@@ -64,7 +64,7 @@ public void OnPluginStart()
 	}
 	if (!dd_cs.Enable(Hook_Post, CheckStuck))
 	{
-		SetFailState("Failed to enable detour hook: Fn_CheckStuck");
+		SetFailState("Failed to detour: Fn_CheckStuck");
 	}
 
 	delete gd;
@@ -127,17 +127,15 @@ public bool HitResult(int entity, int client)
 	return true;
 }
 
-void UnstuckPlayer(int client, int entref)
+void UnstuckPlayer(int client, int entity_or_entref)
 {
 	if (!IsClientInGame(client))
 	{
-		// Cannot safely throw because we're calling from inside
-		// game physics detour and this must return control.
 		LogError("Client was not in game: %d", client);
 		return;
 	}
-	Hack_SetEntityCollisionGroup(entref, COLLISION_GROUP_PUSHAWAY);
-	CreateTimer(TIMER_RE_ENABLE_COLLISION, Timer_EnableCollision, entref, TIMER_FLAG_NO_MAPCHANGE);
+	Hack_SetEntityCollisionGroup(entity_or_entref, COLLISION_GROUP_PUSHAWAY);
+	CreateTimer(TIMER_RE_ENABLE_COLLISION, Timer_EnableCollision, entity_or_entref, TIMER_FLAG_NO_MAPCHANGE);
 }
 
 public Action Timer_EnableCollision(Handle timer, int entref)
@@ -150,8 +148,6 @@ public Action Timer_EnableCollision(Handle timer, int entref)
 // because of some missing offsets. Calling directly, for now.
 void Hack_SetEntityCollisionGroup(int entity_or_entref, int collision_group)
 {
-	// Always convert to entity index before actually passing in.
-	entity_or_entref = EntRefToEntIndex(entity_or_entref);
 	if (!IsValidEntity(entity_or_entref))
 	{
 		return;
@@ -169,13 +165,8 @@ void Hack_SetEntityCollisionGroup(int entity_or_entref, int collision_group)
 #endif
 	bool in_physics_callback = SDKCall(call);
 	delete call;
-
-	// Ensure no recursive physics callbacks
 	if (in_physics_callback)
 	{
-#if(DEBUG)
-		PrintToServer("!! In physics callback; bail out");
-#endif
 		return;
 	}
 
@@ -208,11 +199,20 @@ public MRESReturn CollisionRulesChanged(int entity)
 
 	// Because our string buffer cuts off at 12+1,
 	// this will match "prop_physics", and also any "prop_physics_..." derivatives.
-	if (!StrEqual(buffer, "prop_physics"))
+	if (!StrEqual(buffer, "prop_physics") &&
+		!StrEqual(buffer, "func_physbox"))
 	{
 		return MRES_Ignored;
 	}
 
+#if(DEBUG)
+	if (!HasEntProp(entity, Prop_Send, "m_CollisionGroup"))
+	{
+		LogError("Entity %d of class %s has no sendprop \"m_CollisionGroup\"",
+			entity, buffer);
+		return MRES_Ignored;
+	}
+#endif
 	int collision_group = GetEntProp(entity, Prop_Send, "m_CollisionGroup");
 
 	// This prop just went into being non-solid for players.
