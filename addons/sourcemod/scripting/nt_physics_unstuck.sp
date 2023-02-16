@@ -6,7 +6,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "0.2.0"
+#define PLUGIN_VERSION "0.3.0"
 #define DEBUG false
 
 #define COLLISION_GROUP_NONE 0 // Default NT player non-active physics prop interaction.
@@ -199,7 +199,8 @@ public MRESReturn CollisionRulesChanged(int entity)
 
 	// Because our string buffer cuts off at 12+1,
 	// this will match "prop_physics", and also any "prop_physics_..." derivatives.
-	if (!StrEqual(buffer, "prop_physics"))
+	if (!StrEqual(buffer, "prop_physics") &&
+		!StrEqual(buffer, "func_physbox"))
 	{
 		return MRES_Ignored;
 	}
