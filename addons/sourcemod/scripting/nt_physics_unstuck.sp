@@ -6,7 +6,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "0.4.0"
+#define PLUGIN_VERSION "0.5.0"
 #define DEBUG false
 
 #define COLLISION_GROUP_NONE 0 // Default NT player non-active physics prop interaction.
@@ -172,35 +172,35 @@ void Hack_SetEntityCollisionGroup(int entity_or_entref, int collision_group)
 		return;
 	}
 
-	Handle call;
-	StartPrepSDKCall(SDKCall_Static);
-	PrepSDKCall_SetSignature(SDKLibrary_Server, "\x8B\x0D\x2A\x2A\x2A\x2A\x8B\x01\x8B\x50\x6C\xFF\xD2\x84\xC0\x75\x2A\x83\x3D\x2A\x2A\x2A\x2A\x00\x7F\x2A", 26);
-	call = EndPrepSDKCall();
-#if(DEBUG)
-	if (call == INVALID_HANDLE)
+	static Handle call_PhysIsInCallback = INVALID_HANDLE;
+	if (call_PhysIsInCallback == INVALID_HANDLE)
 	{
-		SetFailState("Failed to prep SDK call: PhysIsInCallback");
+		StartPrepSDKCall(SDKCall_Static);
+		PrepSDKCall_SetSignature(SDKLibrary_Server, "\x8B\x0D\x2A\x2A\x2A\x2A\x8B\x01\x8B\x50\x6C\xFF\xD2\x84\xC0\x75\x2A\x83\x3D\x2A\x2A\x2A\x2A\x00\x7F\x2A", 26);
+		call_PhysIsInCallback = EndPrepSDKCall();
+		if (call_PhysIsInCallback == INVALID_HANDLE)
+		{
+			SetFailState("Failed to prep SDK call");
+		}
 	}
-#endif
-	bool in_physics_callback = SDKCall(call);
-	delete call;
-	if (in_physics_callback)
+	if (SDKCall(call_PhysIsInCallback))
 	{
 		return;
 	}
 
-	StartPrepSDKCall(SDKCall_Entity);
-	PrepSDKCall_SetSignature(SDKLibrary_Server, "\x56\x8B\xF1\x8B\x86\xF4\x01\x00\x00", 9);
-	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-	call = EndPrepSDKCall();
-#if(DEBUG)
-	if (call == INVALID_HANDLE)
+	static Handle call_SetCollisionGroup = INVALID_HANDLE;
+	if (call_SetCollisionGroup == INVALID_HANDLE)
 	{
-		SetFailState("Failed to prep SDK call: SetCollisionGroup");
+		StartPrepSDKCall(SDKCall_Entity);
+		PrepSDKCall_SetSignature(SDKLibrary_Server, "\x56\x8B\xF1\x8B\x86\xF4\x01\x00\x00", 9);
+		PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+		call_SetCollisionGroup = EndPrepSDKCall();
+		if (call_SetCollisionGroup == INVALID_HANDLE)
+		{
+			SetFailState("Failed to prep SDK call");
+		}
 	}
-#endif
-	SDKCall(call, entity_or_entref, collision_group);
-	delete call;
+	SDKCall(call_SetCollisionGroup, entity_or_entref, collision_group);
 }
 
 static char buffer[13]; // strlen "prop_physics" + 1
