@@ -14,6 +14,11 @@
 				"library"	"server"
 				"windows"	"\x81\xEC\x80\x00\x00\x00\x56\x57\x8B\xF1"
 			}
+			"Sig_CGameMovement_ProcessMovement"
+			{
+				"library"	"server"
+				"windows"	"\x51\xA1\x2A\x2A\x2A\x2A\xD9\x40\x10\x56\x8B\xF1\xD9\x5C\x24\x04"
+			}
 			"Sig_CBaseEntity_SetCollisionGroup"
 			{
 				"library"	"server"
@@ -50,6 +55,25 @@
 					{
 						"type"		"objectptr"
 						"register"	"ecx"
+					}
+				}
+			}
+			"Fn_ProcessMovement"
+			{
+				"signature"	"Sig_CGameMovement_ProcessMovement"
+				"callconv"	"thiscall"
+				"hooktype"	"raw"
+				"return"	"void"
+				"this"		"address"
+				"arguments"
+				{
+					"player"
+					{
+						"type"	"cbaseentity"
+					}
+					"movedata"
+					{
+						"type"	"objectptr"
 					}
 				}
 			}

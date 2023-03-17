@@ -6,7 +6,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "0.3.0"
+#define PLUGIN_VERSION "0.4.0"
 #define DEBUG false
 
 #define COLLISION_GROUP_NONE 0 // Default NT player non-active physics prop interaction.
@@ -20,6 +20,7 @@
 
 #define NEO_MAX_PLAYERS 32
 
+static int _player_being_processed = INVALID_ENT_REFERENCE;
 static int props[32];
 static int head;
 
@@ -67,13 +68,24 @@ public void OnPluginStart()
 		SetFailState("Failed to detour: Fn_CheckStuck");
 	}
 
+	DynamicDetour dd_pm = DynamicDetour.FromConf(gd, "Fn_ProcessMovement");
+	if (!dd_pm)
+	{
+		SetFailState("Failed to create dynamic detour: Fn_ProcessMovement");
+	}
+	if (!dd_pm.Enable(Hook_Pre, ProcessMovement))
+	{
+		SetFailState("Failed to detour: Fn_ProcessMovement");
+	}
+
 	delete gd;
 }
 
 #if(DEBUG)
 float lastCheck = 0.0;
 #endif
-public MRESReturn CheckStuck(Address pThis, DHookReturn hReturn, DHookParam hParams)
+public MRESReturn CheckStuck(Address pThis, DHookReturn hReturn,
+	DHookParam hParams)
 {
 #if(DEBUG)
 	float time = GetGameTime();
@@ -84,18 +96,24 @@ public MRESReturn CheckStuck(Address pThis, DHookReturn hReturn, DHookParam hPar
 	// Someone somewhere is stuck!
 	if (hReturn.Value)
 	{
-		float pos[3];
-		// Update everyone's stuck status
-		for (int client = 1; client <= MaxClients; ++client)
+		if (!IsValidEdict(_player_being_processed) ||
+			!IsClientInGame(_player_being_processed) ||
+			GetClientTeam(_player_being_processed) <= TEAM_SPECTATOR)
 		{
-			if (!IsClientInGame(client) || GetClientTeam(client) <= TEAM_SPECTATOR)
-			{
-				continue;
-			}
-			GetClientAbsOrigin(client, pos);
-			TR_EnumerateEntitiesHull(pos, pos, mins, maxs, PARTITION_SOLID_EDICTS, HitResult, client);
+			return MRES_Ignored;
 		}
+
+		float pos[3];
+		GetClientAbsOrigin(_player_being_processed, pos);
+		TR_EnumerateEntitiesHull(pos, pos, mins, maxs, PARTITION_SOLID_EDICTS,
+			HitResult, _player_being_processed);
 	}
+	return MRES_Ignored;
+}
+
+public MRESReturn ProcessMovement(Address pThis, DHookParam hParams)
+{
+	_player_being_processed = hParams.Get(1);
 	return MRES_Ignored;
 }
 
@@ -135,7 +153,8 @@ void UnstuckPlayer(int client, int entity_or_entref)
 		return;
 	}
 	Hack_SetEntityCollisionGroup(entity_or_entref, COLLISION_GROUP_PUSHAWAY);
-	CreateTimer(TIMER_RE_ENABLE_COLLISION, Timer_EnableCollision, entity_or_entref, TIMER_FLAG_NO_MAPCHANGE);
+	CreateTimer(TIMER_RE_ENABLE_COLLISION, Timer_EnableCollision,
+		entity_or_entref, TIMER_FLAG_NO_MAPCHANGE);
 }
 
 public Action Timer_EnableCollision(Handle timer, int entref)
