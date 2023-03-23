@@ -49,14 +49,6 @@
 				"hooktype"	"raw"
 				"return"	"int"
 				"this"		"address"
-				"arguments"
-				{
-					"esp_value"
-					{
-						"type"		"objectptr"
-						"register"	"ecx"
-					}
-				}
 			}
 			"Fn_ProcessMovement"
 			{

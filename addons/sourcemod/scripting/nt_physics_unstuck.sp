@@ -6,7 +6,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "0.5.0"
+#define PLUGIN_VERSION "0.6.0"
 #define DEBUG false
 
 #define COLLISION_GROUP_NONE 0 // Default NT player non-active physics prop interaction.
@@ -84,8 +84,7 @@ public void OnPluginStart()
 #if(DEBUG)
 float lastCheck = 0.0;
 #endif
-public MRESReturn CheckStuck(Address pThis, DHookReturn hReturn,
-	DHookParam hParams)
+public MRESReturn CheckStuck(Address pThis, DHookReturn hReturn)
 {
 #if(DEBUG)
 	float time = GetGameTime();
