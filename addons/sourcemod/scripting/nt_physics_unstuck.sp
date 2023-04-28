@@ -6,7 +6,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "0.6.1"
+#define PLUGIN_VERSION "0.6.2"
 #define DEBUG false
 
 #define COLLISION_GROUP_NONE 0 // Default NT player non-active physics prop interaction.
@@ -16,7 +16,7 @@
 #define CHECKSTUCK_MINTIME 0.05 // Engine checkstuck min interval
 #define TIMER_MAX_ACCURACY 0.1
 
-#define TIMER_RE_ENABLE_COLLISION 1.0
+#define TIMER_RE_ENABLE_COLLISION 1.5
 
 #define NEO_MAX_PLAYERS 32
 
