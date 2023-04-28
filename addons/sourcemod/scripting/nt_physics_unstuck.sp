@@ -6,7 +6,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "0.6.0"
+#define PLUGIN_VERSION "0.6.2"
 #define DEBUG false
 
 #define COLLISION_GROUP_NONE 0 // Default NT player non-active physics prop interaction.
@@ -16,7 +16,7 @@
 #define CHECKSTUCK_MINTIME 0.05 // Engine checkstuck min interval
 #define TIMER_MAX_ACCURACY 0.1
 
-#define TIMER_RE_ENABLE_COLLISION 1.0
+#define TIMER_RE_ENABLE_COLLISION 1.5
 
 #define NEO_MAX_PLAYERS 32
 
@@ -26,6 +26,9 @@ static int head;
 
 static float mins[3] = { -16.0, -16.0, 0.0 };
 static float maxs[3] = { 16.0, 16.0, 70.0 };
+
+static Handle call_PhysIsInCallback = INVALID_HANDLE;
+static Handle call_SetCollisionGroup = INVALID_HANDLE;
 
 public Plugin myinfo = {
 	name = "NT Physics Unstuck",
@@ -37,6 +40,23 @@ public Plugin myinfo = {
 
 public void OnPluginStart()
 {
+	StartPrepSDKCall(SDKCall_Static);
+	PrepSDKCall_SetSignature(SDKLibrary_Server, "\x8B\x0D\x2A\x2A\x2A\x2A\x8B\x01\x8B\x50\x6C\xFF\xD2\x84\xC0\x75\x2A\x83\x3D\x2A\x2A\x2A\x2A\x00\x7F\x2A", 26);
+	call_PhysIsInCallback = EndPrepSDKCall();
+	if (call_PhysIsInCallback == INVALID_HANDLE)
+	{
+		SetFailState("Failed to prep SDK call");
+	}
+
+	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetSignature(SDKLibrary_Server, "\x56\x8B\xF1\x8B\x86\xF4\x01\x00\x00", 9);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+	call_SetCollisionGroup = EndPrepSDKCall();
+	if (call_SetCollisionGroup == INVALID_HANDLE)
+	{
+		SetFailState("Failed to prep SDK call");
+	}
+
 	if (TIMER_RE_ENABLE_COLLISION <= CHECKSTUCK_MINTIME + TIMER_MAX_ACCURACY)
 	{
 		SetFailState("Re-enable collision is too fast!");
@@ -171,34 +191,11 @@ void Hack_SetEntityCollisionGroup(int entity_or_entref, int collision_group)
 		return;
 	}
 
-	static Handle call_PhysIsInCallback = INVALID_HANDLE;
-	if (call_PhysIsInCallback == INVALID_HANDLE)
-	{
-		StartPrepSDKCall(SDKCall_Static);
-		PrepSDKCall_SetSignature(SDKLibrary_Server, "\x8B\x0D\x2A\x2A\x2A\x2A\x8B\x01\x8B\x50\x6C\xFF\xD2\x84\xC0\x75\x2A\x83\x3D\x2A\x2A\x2A\x2A\x00\x7F\x2A", 26);
-		call_PhysIsInCallback = EndPrepSDKCall();
-		if (call_PhysIsInCallback == INVALID_HANDLE)
-		{
-			SetFailState("Failed to prep SDK call");
-		}
-	}
 	if (SDKCall(call_PhysIsInCallback))
 	{
 		return;
 	}
 
-	static Handle call_SetCollisionGroup = INVALID_HANDLE;
-	if (call_SetCollisionGroup == INVALID_HANDLE)
-	{
-		StartPrepSDKCall(SDKCall_Entity);
-		PrepSDKCall_SetSignature(SDKLibrary_Server, "\x56\x8B\xF1\x8B\x86\xF4\x01\x00\x00", 9);
-		PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-		call_SetCollisionGroup = EndPrepSDKCall();
-		if (call_SetCollisionGroup == INVALID_HANDLE)
-		{
-			SetFailState("Failed to prep SDK call");
-		}
-	}
 	SDKCall(call_SetCollisionGroup, entity_or_entref, collision_group);
 }
 
