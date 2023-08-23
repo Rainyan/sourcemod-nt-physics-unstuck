@@ -6,7 +6,7 @@
 
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "0.6.3"
+#define PLUGIN_VERSION "0.6.4"
 #define DEBUG false
 
 #define COLLISION_GROUP_NONE 0 // Default NT player non-active physics prop interaction.
@@ -67,35 +67,60 @@ public void OnPluginStart()
 		SetFailState("Failed to load GameData");
 	}
 
-	DynamicDetour dd_cr = DynamicDetour.FromConf(gd, "Fn_CollisionRulesChanged");
-	if (!dd_cr)
+	DynamicDetour dd = DynamicDetour.FromConf(gd, "Fn_CollisionRulesChanged");
+	if (!dd)
 	{
 		SetFailState("Failed to create dynamic detour: Fn_CollisionRulesChanged");
 	}
-	if (!dd_cr.Enable(Hook_Pre, CollisionRulesChanged))
+	if (!dd.Enable(Hook_Pre, CollisionRulesChanged))
 	{
 		SetFailState("Failed to enable detour hook: Fn_CollisionRulesChanged");
 	}
+	delete dd;
 
-	DynamicDetour dd_cs = DynamicDetour.FromConf(gd, "Fn_CheckStuck");
-	if (!dd_cs)
+	dd = DynamicDetour.FromConf(gd, "Fn_CheckStuck");
+	if (!dd)
 	{
 		SetFailState("Failed to create dynamic detour: Fn_CheckStuck");
 	}
-	if (!dd_cs.Enable(Hook_Post, CheckStuck))
+	if (!dd.Enable(Hook_Post, CheckStuck))
 	{
 		SetFailState("Failed to detour: Fn_CheckStuck");
 	}
+	delete dd;
 
-	DynamicDetour dd_pm = DynamicDetour.FromConf(gd, "Fn_ProcessMovement");
-	if (!dd_pm)
+	dd = DynamicDetour.FromConf(gd, "Fn_ProcessMovement");
+	if (!dd)
 	{
 		SetFailState("Failed to create dynamic detour: Fn_ProcessMovement");
 	}
-	if (!dd_pm.Enable(Hook_Pre, ProcessMovement))
+	if (!dd.Enable(Hook_Pre, ProcessMovement))
 	{
 		SetFailState("Failed to detour: Fn_ProcessMovement");
 	}
+	delete dd;
+
+	dd = DynamicDetour.FromConf(gd, "Fn_CPhysicsProp__VPhysicsCollision");
+	if (!dd)
+	{
+		SetFailState("Failed to create dynamic detour: Fn_CPhysicsProp__VPhysicsCollision");
+	}
+	if (!dd.Enable(Hook_Pre, VPhysicsCollision))
+	{
+		SetFailState("Failed to detour: Fn_CPhysicsProp__VPhysicsCollision");
+	}
+	delete dd;
+
+	dd = DynamicDetour.FromConf(gd, "Fn_CPhysicsProp__OnTakeDamage");
+	if (!dd)
+	{
+		SetFailState("Failed to create dynamic detour: Fn_CPhysicsProp__OnTakeDamage");
+	}
+	if (!dd.Enable(Hook_Post, OnTakeDamage))
+	{
+		SetFailState("Failed to detour: Fn_CPhysicsProp__OnTakeDamage");
+	}
+	delete dd;
 
 	delete gd;
 }
@@ -198,10 +223,88 @@ void Hack_SetEntityCollisionGroup(int entity_or_entref, int collision_group)
 	SDKCall(call_SetCollisionGroup, entity_or_entref, collision_group);
 }
 
-static char buffer[13]; // strlen "prop_physics" + 1
+public Action Timer_RemoveFromProps(Handle timer, int entref)
+{
+	for (int i = 0; i < sizeof(props); ++i)
+	{
+		if (props[i] == entref)
+		{
+			props[i] = INVALID_ENT_REFERENCE;
+			break;
+		}
+	}
+	return Plugin_Stop;
+}
+
+MRESReturn InferredPhysicsPropMovement(int entity)
+{
+	if (!IsValidEdict(entity))
+	{
+		return MRES_Ignored;
+	}
+
+	if (GetEntityMoveType(entity) != MOVETYPE_VPHYSICS)
+	{
+		return MRES_Ignored;
+	}
+
+	// one more than strlen("prop_physics") + 1,
+	// because we only want exact match; not any prop_physics_... variants
+	char buffer[12 + 1 + 1];
+	if (!GetEntityClassname(entity, buffer, sizeof(buffer)))
+	{
+		return MRES_Ignored;
+	}
+
+	if (!StrEqual(buffer, "prop_physics"))
+	{
+		return MRES_Ignored;
+	}
+
+#if(DEBUG)
+	if (!HasEntProp(entity, Prop_Send, "m_CollisionGroup"))
+	{
+		LogError("Entity %d of class %s has no sendprop \"m_CollisionGroup\"",
+			entity, buffer);
+		return MRES_Ignored;
+	}
+#endif
+
+	int entref = EntIndexToEntRef(entity);
+	for (int i = 0; i < sizeof(props); ++i)
+	{
+		if (props[i] == entref)
+		{
+			return MRES_Ignored;
+		}
+	}
+	props[head] = EntIndexToEntRef(entity);
+	head = (head + 1) % sizeof(props);
+
+	CreateTimer(1.0, Timer_RemoveFromProps, entref);
+
+	return MRES_Ignored;
+}
+
+public MRESReturn OnTakeDamage(int entity, DHookReturn hReturn, DHookParam hParams)
+{
+	return InferredPhysicsPropMovement(entity);
+}
+
+public MRESReturn VPhysicsCollision(int entity, DHookParam hParams)
+{
+	return InferredPhysicsPropMovement(entity);
+}
+
+static char buffer[12 + 1]; // strlen "prop_physics" + 1
 public MRESReturn CollisionRulesChanged(int entity)
 {
 	if (!IsValidEdict(entity))
+	{
+		return MRES_Ignored;
+	}
+
+	if (GetEntityMoveType(entity) != MOVETYPE_VPHYSICS)
 	{
 		return MRES_Ignored;
 	}
@@ -218,6 +321,7 @@ public MRESReturn CollisionRulesChanged(int entity)
 	{
 		return MRES_Ignored;
 	}
+
 
 #if(DEBUG)
 	if (!HasEntProp(entity, Prop_Send, "m_CollisionGroup"))

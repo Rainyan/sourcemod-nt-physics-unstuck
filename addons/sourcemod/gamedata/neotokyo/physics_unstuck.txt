@@ -24,9 +24,51 @@
 				"library"	"server"
 				"windows"	"\x56\x8B\xF1\x8B\x86\xF4\x01\x00\x00"
 			}
+			"Sig_CPhysicsProp__VPhysicsCollision"
+			{
+				"library"	"server"
+				"windows"	"\x81\xEC\x88\x00\x00\x00\x53\x55\x8B\xAC\x24\x94\x00\x00\x00\x56"
+			}
+			"Sig_CPhysicsProp__OnTakeDamage"
+			{
+				"library"	"server"
+				"windows"	"\x83\xEC\x6C\x53\x8B\x5C\x24\x74\x55"
+			}
 		}
 		"Functions"
 		{
+			"Fn_CPhysicsProp__OnTakeDamage"
+			{
+				"signature"	"Sig_CPhysicsProp__OnTakeDamage"
+				"callconv"	"thiscall"
+				"return"	"int"
+				"this"		"entity"
+				"arguments"
+				{
+					"takedmginfo"
+					{
+						"type"	"objectptr"
+					}
+				}
+			}
+			"Fn_CPhysicsProp__VPhysicsCollision"
+			{
+				"signature"	"Sig_CPhysicsProp__VPhysicsCollision"
+				"callconv"	"thiscall"
+				"return"	"void"
+				"this"		"entity"
+				"arguments"
+				{
+					"index"
+					{
+						"type"	"int"
+					}
+					"event"
+					{
+						"type"	"objectptr"
+					}
+				}
+			}
 			"Fn_SetCollisionGroup"
 			{
 				"signature"	"Sig_CBaseEntity_SetCollisionGroup"
@@ -73,7 +115,6 @@
 			{
 				"signature"	"Sig_CBaseEntity_CollisionRulesChanged"
 				"callconv"	"thiscall"
-				"hooktype"	"entity"
 				"return"	"void"
 				"this"		"entity"
 			}
