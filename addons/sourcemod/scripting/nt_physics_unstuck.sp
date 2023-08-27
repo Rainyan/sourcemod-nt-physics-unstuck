@@ -236,6 +236,9 @@ public Action Timer_RemoveFromProps(Handle timer, int entref)
 	return Plugin_Stop;
 }
 
+// CBaseEntity::CollisionRulesChanged is *not* called for the base PhysicsProp,
+// (as opposed to physics_prop_multiplayer, etc), so we're indirectly inferring
+// it from related call sites here.
 MRESReturn InferredPhysicsPropMovement(int entity)
 {
 	if (!IsValidEdict(entity))
