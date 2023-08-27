@@ -322,7 +322,6 @@ public MRESReturn CollisionRulesChanged(int entity)
 		return MRES_Ignored;
 	}
 
-
 #if(DEBUG)
 	if (!HasEntProp(entity, Prop_Send, "m_CollisionGroup"))
 	{
