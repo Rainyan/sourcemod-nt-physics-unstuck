@@ -322,7 +322,7 @@ public MRESReturn CollisionRulesChanged(int entity)
 	// Because our string buffer cuts off at 12+1,
 	// this will match any "prop_physics_..." derivatives.
 	// Note that this detour is actually *not* hit for the base PhysicsProp
-	// (i.e. prop_physics); see InferredPhysicsPropMovement for more details.
+	// (i.e. "prop_physics"); see InferredPhysicsPropMovement for more details.
 	if (!StrEqual(buffer, "prop_physics") &&
 		!StrEqual(buffer, "func_physbox"))
 	{
