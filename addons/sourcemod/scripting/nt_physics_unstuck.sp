@@ -246,6 +246,7 @@ MRESReturn InferredPhysicsPropMovement(int entity)
 		return MRES_Ignored;
 	}
 
+	// fast filter for player, weapons, et al.
 	if (GetEntityMoveType(entity) != MOVETYPE_VPHYSICS)
 	{
 		return MRES_Ignored;
@@ -307,6 +308,7 @@ public MRESReturn CollisionRulesChanged(int entity)
 		return MRES_Ignored;
 	}
 
+	// fast filter for player, weapons, et al.
 	if (GetEntityMoveType(entity) != MOVETYPE_VPHYSICS)
 	{
 		return MRES_Ignored;
