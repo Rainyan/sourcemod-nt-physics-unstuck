@@ -285,7 +285,7 @@ MRESReturn InferredPhysicsPropMovement(int entity)
 	props[head] = EntIndexToEntRef(entity);
 	head = (head + 1) % sizeof(props);
 
-	CreateTimer(1.0, Timer_RemoveFromProps, entref);
+	CreateTimer(TIMER_RE_ENABLE_COLLISION, Timer_RemoveFromProps, entref);
 
 	return MRES_Ignored;
 }
